@@ -85,7 +85,7 @@ SUBROUTINE getgrid(myid,Nx,Ny,Nz,Lx,Ly,Lz,pi,name,x,y,z,kx,ky,kz,decomp)
 	CHARACTER*100, INTENT(IN)							:: name
 	CHARACTER*200                                       :: name_config
 	INTEGER(kind=4)										:: i,j,k,ind, ierr
-    real(kind=8), allocatable                           :: xcoords(:), ycoords(:), zcoords(:)
+    real(kind=8), allocatable                           :: tmpxcoords(:), tmpycoords(:), tmpzcoords(:)
 	
 	
 	DO i = 1,1+ Nx/2
@@ -142,41 +142,44 @@ SUBROUTINE getgrid(myid,Nx,Ny,Nz,Lx,Ly,Lz,pi,name,x,y,z,kx,ky,kz,decomp)
 !	IF (myid.eq.0) THEN
 	IF (myid.ge.-1) THEN
 #ifdef ADIOS2
-    allocate (xcoords(Nx), stat=ierr)
+    allocate (tmpxcoords(Nx), stat=ierr)
     if (ierr .ne. 0) then
         print *, "Could not allocate xcoords in getgrid(). Exiting .."
         call MPI_Abort(MPI_COMM_WORLD, -1, ierr)
     endif
 
-    allocate (ycoords(Nx), stat=ierr)
+    allocate (tmpycoords(Nx), stat=ierr)
     if (ierr .ne. 0) then
         print *, "Could not allocate xcoords in getgrid(). Exiting .."
         call MPI_Abort(MPI_COMM_WORLD, -1, ierr)
     endif
 
-    allocate (zcoords(Nx), stat=ierr)
+    allocate (tmpzcoords(Nx), stat=ierr)
     if (ierr .ne. 0) then
         print *, "Could not allocate xcoords in getgrid(). Exiting .."
         call MPI_Abort(MPI_COMM_WORLD, -1, ierr)
     endif
 
 	 DO i=1,Nx
-	    xcoords(i) = (-1.0d0 + 2.0d0*REAL(i-1,kind(0d0))/REAL(Nx,kind(0d0)))*pi*Lx
+	    tmpxcoords(i) = (-1.0d0 + 2.0d0*REAL(i-1,kind(0d0))/REAL(Nx,kind(0d0)))*pi*Lx
 	 END DO
 
      DO j=1,Ny
-	    ycoords(j) = (-1.0d0 + 2.0d0*REAL(j-1,kind(0d0))/REAL(Ny,kind(0d0)))*pi*Ly
+	    tmpycoords(j) = (-1.0d0 + 2.0d0*REAL(j-1,kind(0d0))/REAL(Ny,kind(0d0)))*pi*Ly
 	 END DO
 
      DO k=1,Nz
-	    zcoords(k) = (-1.0d0 + 2.0d0*REAL(k-1,kind(0d0))/REAL(Nz,kind(0d0)))*pi*Lz
+	    tmpzcoords(k) = (-1.0d0 + 2.0d0*REAL(k-1,kind(0d0))/REAL(Nz,kind(0d0)))*pi*Lz
 	 END DO
 
-     call write_coordinates (xcoords, ycoords, zcoords)
+     call write_coordinates (tmpxcoords, tmpycoords, tmpzcoords)
 
-     deallocate(xcoords)
-     deallocate(ycoords)
-     deallocate(zcoords)
+     ! Don't free these now - they won't get actually written until the first
+     ! timestep is written.
+
+     !deallocate(xcoords)
+     !deallocate(ycoords)
+     !deallocate(zcoords)
 #else
 	 ! Save x grid points in text format
 	 ind=index(name,' ') -1

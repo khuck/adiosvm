@@ -11,6 +11,8 @@ MODULE BRUSSELATOR_IO
     type(adios2_variable)   :: var_xcoords, var_ycoords, var_zcoords
     type(adios2_variable)   :: var_plotnum, var_u_r, var_u_i, var_v_r, var_v_i
     logical                 :: adios2_initialized
+    real(kind=8), allocatable :: xcoords(:), ycoords(:), zcoords(:)
+
 
     CONTAINS
 
@@ -75,18 +77,20 @@ MODULE BRUSSELATOR_IO
 
 
     !----------------------------------------------------------------------------!
-    SUBROUTINE write_coordinates (xcoords, ycoords, zcoords)
+    SUBROUTINE write_coordinates (xcoordsin, ycoordsin, zcoordsin)
     !----------------------------------------------------------------------------!
         ! This routine is called once, by the root process.
         implicit none
 
-        real(kind=8), intent(in)    :: xcoords(:), ycoords(:), zcoords(:)
+        real(kind=8), intent(in)    :: xcoordsin(:), ycoordsin(:), zcoordsin(:)
         integer                     :: ierr
 
-        ierr = 0
-        call adios2_put (ad_engine, var_xcoords, xcoords, adios2_mode_sync, ierr)
-        call adios2_put (ad_engine, var_ycoords, ycoords, adios2_mode_sync, ierr)
-        call adios2_put (ad_engine, var_zcoords, zcoords, adios2_mode_sync, ierr)
+        ! DON'T DO THIS UNTIL BEGIN STEP IS CALLED! instead, save the data
+        ! and write it in the first step.
+
+        xcoords = xcoordsin
+        ycoords = ycoordsin
+        zcoords = zcoordsin
 
     END SUBROUTINE write_coordinates
     !----------------------------------------------------------------------------!
@@ -185,6 +189,18 @@ MODULE BRUSSELATOR_IO
         call mpi_comm_rank (mpi_comm_world, myrank, ierr)
         call adios2_begin_step (ad_engine, ierr)
         !if (myrank .eq. 0) call adios2_put (ad_engine, var_plotnum, plotnum, adios2_mode_sync, ierr)
+        if (myrank .eq. 0 .and. allocated(xcoords)) then
+            call adios2_put (ad_engine, var_xcoords, xcoords, adios2_mode_sync, ierr)
+            deallocate(xcoords)
+        endif
+        if (myrank .eq. 0 .and. allocated(ycoords)) then
+            call adios2_put (ad_engine, var_ycoords, ycoords, adios2_mode_sync, ierr)
+            deallocate(ycoords)
+        endif
+        if (myrank .eq. 0 .and. allocated(zcoords)) then
+            call adios2_put (ad_engine, var_zcoords, zcoords, adios2_mode_sync, ierr)
+            deallocate(zcoords)
+        endif
         call adios2_put (ad_engine, var_plotnum, plotnum, adios2_mode_sync, ierr)
         call adios2_put (ad_engine, var_u_r, field, adios2_mode_sync, ierr)
 #else
