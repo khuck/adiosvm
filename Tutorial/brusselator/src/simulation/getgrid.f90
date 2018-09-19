@@ -160,26 +160,23 @@ SUBROUTINE getgrid(myid,Nx,Ny,Nz,Lx,Ly,Lz,pi,name,x,y,z,kx,ky,kz,decomp)
         call MPI_Abort(MPI_COMM_WORLD, -1, ierr)
     endif
 
-	 DO i=1,Nx
-	    tmpxcoords(i) = (-1.0d0 + 2.0d0*REAL(i-1,kind(0d0))/REAL(Nx,kind(0d0)))*pi*Lx
-	 END DO
+     DO i=1,Nx
+        tmpxcoords(i) = (-1.0d0 + 2.0d0*REAL(i-1,kind(0d0))/REAL(Nx,kind(0d0)))*pi*Lx
+     END DO
 
      DO j=1,Ny
-	    tmpycoords(j) = (-1.0d0 + 2.0d0*REAL(j-1,kind(0d0))/REAL(Ny,kind(0d0)))*pi*Ly
-	 END DO
+        tmpycoords(j) = (-1.0d0 + 2.0d0*REAL(j-1,kind(0d0))/REAL(Ny,kind(0d0)))*pi*Ly
+     END DO
 
      DO k=1,Nz
-	    tmpzcoords(k) = (-1.0d0 + 2.0d0*REAL(k-1,kind(0d0))/REAL(Nz,kind(0d0)))*pi*Lz
-	 END DO
+        tmpzcoords(k) = (-1.0d0 + 2.0d0*REAL(k-1,kind(0d0))/REAL(Nz,kind(0d0)))*pi*Lz
+     END DO
 
      call write_coordinates (tmpxcoords, tmpycoords, tmpzcoords)
 
-     ! Don't free these now - they won't get actually written until the first
-     ! timestep is written.
-
-     !deallocate(xcoords)
-     !deallocate(ycoords)
-     !deallocate(zcoords)
+     ! Don't deallocate these now - they won't get actually written until 
+     ! the first timestep is written.  They will get deallocated after they are
+     ! written.
 #else
 	 ! Save x grid points in text format
 	 ind=index(name,' ') -1

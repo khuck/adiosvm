@@ -85,8 +85,8 @@ MODULE BRUSSELATOR_IO
         real(kind=8), intent(in)    :: xcoordsin(:), ycoordsin(:), zcoordsin(:)
         integer                     :: ierr
 
-        ! DON'T DO THIS UNTIL BEGIN STEP IS CALLED! instead, save the data
-        ! and write it in the first step.
+        ! DON'T WRITE THESE OUT UNTIL BEGIN STEP IS CALLED! instead, save the
+        ! data and write it in the first step. It will be deallocated then, too.
 
         xcoords = xcoordsin
         ycoords = ycoordsin
@@ -189,6 +189,10 @@ MODULE BRUSSELATOR_IO
         call mpi_comm_rank (mpi_comm_world, myrank, ierr)
         call adios2_begin_step (ad_engine, ierr)
         !if (myrank .eq. 0) call adios2_put (ad_engine, var_plotnum, plotnum, adios2_mode_sync, ierr)
+
+        ! OK, it is now safe to write the coordinates.  These will be written
+        ! once, then deallocated.  After that, they won't be written again.
+
         if (myrank .eq. 0 .and. allocated(xcoords)) then
             call adios2_put (ad_engine, var_xcoords, xcoords, adios2_mode_sync, ierr)
             deallocate(xcoords)
@@ -201,6 +205,7 @@ MODULE BRUSSELATOR_IO
             call adios2_put (ad_engine, var_zcoords, zcoords, adios2_mode_sync, ierr)
             deallocate(zcoords)
         endif
+
         call adios2_put (ad_engine, var_plotnum, plotnum, adios2_mode_sync, ierr)
         call adios2_put (ad_engine, var_u_r, field, adios2_mode_sync, ierr)
 #else
