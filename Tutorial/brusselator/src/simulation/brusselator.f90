@@ -265,7 +265,7 @@ PROGRAM main
     CALL decomp_2d_finalize
     DEALLOCATE(uhigh,vhigh,&
         uhat,vhat,&
-        kx,ky,x,y,savefield,&	
+        kx,ky,kz,x,y,z,savefield,&	
         time,stat=AllocateStatus)	
     IF (AllocateStatus .ne. 0) STOP 
 
