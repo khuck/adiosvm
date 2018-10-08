@@ -78,6 +78,7 @@
 ! 2DECOMP&FFT  -- Domain decomposition and Fast Fourier Library
 !     (http://www.2decomp.org/index.html)
 ! MPI library
+#include "tau_stubs_f.h"
 
 PROGRAM main
     USE decomp_2d
@@ -145,6 +146,9 @@ PROGRAM main
         CMPLX(0.0442100822731214759d0 ,-0.0713885293035937610d0,8)/)
     INTEGER(kind=4)   ::  pp=3
     INTEGER(kind=4)   ::  ss=6
+
+    TAU_INIT()
+    TAU_START("MAIN")
 
     plottime=plotgap
     ! initialisation of MPI
@@ -303,6 +307,7 @@ PROGRAM main
         PRINT*,'Program took total',REAL(finishtot-starttot)/REAL(count_rate),'for execution', &
             REAL(finishtot-starttot)/REAL(count_rate)*numprocs
     END IF
+    TAU_STOP("MAIN")
 END PROGRAM main
 
 !!***************************

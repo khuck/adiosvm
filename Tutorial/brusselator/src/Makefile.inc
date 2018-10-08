@@ -6,14 +6,14 @@ ADIOS2_DIR?=/opt/adios2
 
 ADIOS2_LIB =-L${ADIOS2_DIR}/lib -ladios2_f -ladios2 -ladios2_sst -ladios2_evpath -ladios2_ffs -ladios2_dill -ladios2_atl
 
-FFLAGS=-cpp -O3 -DADIOS2
-CXXFLAGS=-O3 -std=c++11
-CFLAGS=-O3
+FFLAGS=-cpp -O3 -g -DADIOS2 -DTAU_USE_STUBS
+CXXFLAGS=-O3 -g -std=c++11 -DTAU_USE_STUBS
+CFLAGS=-O3 -g -DTAU_USE_STUBS
 
-INCLUDES = -I${FFTW_DIR}/include -I${decompdir}/include -I${ADIOS2_DIR}/include/fortran
+INCLUDES = -I${FFTW_DIR}/include -I${decompdir}/include -I${ADIOS2_DIR}/include/fortran -I../tau_stubs
 FFTW_LIB = -L${FFTW_DIR}/lib -lfftw3
 DECOMPLIB = -L${decompdir}/lib -l2decomp_fft
-LIBS = ${DECOMPLIB} ${ADIOS2_LIB} ${FFTW_LIB}
+LIBS = ${DECOMPLIB} ${ADIOS2_LIB} ${FFTW_LIB} -g
 
 
 #====================================================

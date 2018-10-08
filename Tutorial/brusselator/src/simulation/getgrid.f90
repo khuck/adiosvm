@@ -1,3 +1,4 @@
+#include "tau_stubs_f.h"
 SUBROUTINE getgrid(myid,Nx,Ny,Nz,Lx,Ly,Lz,pi,name,x,y,z,kx,ky,kz,decomp,&
                    xcoords,ycoords,zcoords)
 	!--------------------------------------------------------------------
@@ -91,6 +92,7 @@ SUBROUTINE getgrid(myid,Nx,Ny,Nz,Lx,Ly,Lz,pi,name,x,y,z,kx,ky,kz,decomp,&
 	CHARACTER*200                                       :: name_config
 	INTEGER(kind=4)										:: i,j,k,ind, ierr
 	
+    TAU_START("getgrid")
 	
 	DO i = 1,1+ Nx/2
 	 IF ((i.GE.decomp%zst(1)).AND.(i.LE.decomp%zen(1))) THEN
@@ -187,4 +189,5 @@ SUBROUTINE getgrid(myid,Nx,Ny,Nz,Lx,Ly,Lz,pi,name,x,y,z,kx,ky,kz,decomp,&
 #endif
 	END IF
 	
+    TAU_STOP("getgrid")
 	END SUBROUTINE getgrid

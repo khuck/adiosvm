@@ -18,7 +18,7 @@ all : var_checks Brusselator
 	cd 2decomp_fft; $(MAKE)
 
 Brusselator: var_checks 2decomp_fft  $(OBJECTS)
-		${FC} -o Brusselator  $(OBJECTS) $(LIBS)
+		${FC} -o Brusselator  $(OBJECTS) $(LIBS) ../tau_stubs/tau_stubs.o
 
 brusselator.o : brusselator.f90 savedata.o
 		${FC} -c $(FFLAGS) $(INCLUDES) brusselator.f90

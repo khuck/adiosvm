@@ -1,3 +1,4 @@
+#include "tau_stubs_f.h"
 SUBROUTINE linear(a,b,Du,Dv,dt,modescalereal,coef,kx,ky,kz,u,v,uhat,vhat,decomp) 
 	!--------------------------------------------------------------------
 	!
@@ -87,6 +88,7 @@ SUBROUTINE linear(a,b,Du,Dv,dt,modescalereal,coef,kx,ky,kz,u,v,uhat,vhat,decomp)
    											INTENT(OUT)      :: uhat,vhat
 	INTEGER(kind=4)										     :: i,j,k
 	COMPLEX(kind=8)                   :: uhattemp,vhattemp,uhatstore,vhatstore
+    TAU_START("linear")
 	CALL decomp_2d_fft_3d(u,uhat,DECOMP_2D_FFT_FORWARD)
 	CALL decomp_2d_fft_3d(v,vhat,DECOMP_2D_FFT_FORWARD)
 	IF ((decomp%zst(3).eq.1).and.(decomp%zst(2).eq.1).and.(decomp%zst(1).eq.1)) THEN
@@ -116,4 +118,5 @@ SUBROUTINE linear(a,b,Du,Dv,dt,modescalereal,coef,kx,ky,kz,u,v,uhat,vhat,decomp)
 	 u(i,j,k)=u(i,j,k)*modescalereal
 	 v(i,j,k)=v(i,j,k)*modescalereal
 	END DO; END DO; END DO
+    TAU_STOP("linear")
 	END SUBROUTINE linear

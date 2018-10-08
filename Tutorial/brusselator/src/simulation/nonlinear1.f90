@@ -1,3 +1,4 @@
+#include "tau_stubs_f.h"
 SUBROUTINE nonlinear1(dt,coef,u,v,decomp)
 	!--------------------------------------------------------------------
 	!
@@ -68,8 +69,10 @@ SUBROUTINE nonlinear1(dt,coef,u,v,decomp)
    											INTENT(IN)     :: v
 	INTEGER(kind=4)										   :: i,j,k
 	COMPLEX(kind=8)                                        :: temp
+    TAU_START("nonlinear1")
 	DO k=decomp%xst(3),decomp%xen(3); DO j=decomp%xst(2),decomp%xen(2); DO i=decomp%xst(1),decomp%xen(1)
      temp=u(i,j,k)
 	 u(i,j,k)=temp/(1-temp*v(i,j,k)*coef*dt)
 	END DO; END DO; END DO
+    TAU_STOP("nonlinear1")
 	END SUBROUTINE nonlinear1

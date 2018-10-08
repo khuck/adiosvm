@@ -1,3 +1,4 @@
+#include "tau_stubs_f.h"
 MODULE BRUSSELATOR_IO
     use mpi
     use decomp_2d
@@ -24,6 +25,7 @@ MODULE BRUSSELATOR_IO
         integer, intent(out)            :: ierr
         character*(*), intent(in)       :: fname
 
+        TAU_START("io_init")
         ierr = 0
         ! Code for getting sizes, subsizes, and starts copied from 2decomp_fft
         ! determine subarray parameters
@@ -71,6 +73,7 @@ MODULE BRUSSELATOR_IO
         call adios2_open (ad_engine, ad_io, fname, adios2_mode_write, &
             comm, ierr)
 #endif
+        TAU_STOP("io_init")
     end subroutine io_init
 
 
@@ -83,10 +86,12 @@ MODULE BRUSSELATOR_IO
         real(kind=8), intent(in)    :: xcoords(:), ycoords(:), zcoords(:)
         integer                     :: ierr
 
+        TAU_START("write_coordinates")
         ierr = 0
         call adios2_put (ad_engine, var_xcoords, xcoords, adios2_mode_deferred, ierr)
         call adios2_put (ad_engine, var_ycoords, ycoords, adios2_mode_deferred, ierr)
         call adios2_put (ad_engine, var_zcoords, zcoords, adios2_mode_deferred, ierr)
+        TAU_STOP("write_coordinates")
 
     END SUBROUTINE write_coordinates
     !----------------------------------------------------------------------------!
@@ -174,6 +179,7 @@ MODULE BRUSSELATOR_IO
             decomp%xst(2):decomp%xen(2),&
             decomp%xst(3):decomp%xen(3)), &
             INTENT(IN) :: u,v
+        TAU_START("savedata")
 
         ! create character array with full filename
         ! write out using 2DECOMP&FFT MPI-IO routines
@@ -243,6 +249,7 @@ MODULE BRUSSELATOR_IO
         call adios2_put (ad_engine, var_v_i, field, adios2_mode_deferred, ierr)
         call adios2_end_step (ad_engine, ierr)
 #endif
+        TAU_STOP("savedata")
     END SUBROUTINE savedata
 
 
@@ -253,11 +260,13 @@ MODULE BRUSSELATOR_IO
 
         integer, intent(out) :: ierr
 
+        TAU_START("io_finalize")
 #ifdef ADIOS2
         ierr = 0
         call adios2_close    (ad_engine, ierr)
         call adios2_finalize (adios2_handle, ierr)
 #endif
+        TAU_STOP("io_finalize")
 
     END SUBROUTINE IO_FINALIZE
 

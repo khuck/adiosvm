@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <cmath>
 #include "adios2.h"
+#include "tau_stubs.h"
 
 /*
  * Function to compute the norm of a vector
@@ -20,6 +21,7 @@
 template <class T> 
 std::vector<T> compute_norm(const std::vector<T>& real, const std::vector<T>& imag)
 {
+    TAU_START_FUNC();
     if(real.size() != imag.size()) 
         throw std::invalid_argument("ERROR: real and imag parts have different sizes\n"); 
     
@@ -28,6 +30,7 @@ std::vector<T> compute_norm(const std::vector<T>& real, const std::vector<T>& im
     for (auto i = 0; i < real.size(); ++i )
         norm[i] = std::sqrt( std::pow(real[i], 2.) + std::pow(imag[i], 2.) );
     
+    TAU_STOP_FUNC();
     return norm;
 }
 
@@ -48,6 +51,8 @@ void printUsage()
  */
 int main(int argc, char *argv[])
 {
+    TAU_INIT(argc,argv);
+    TAU_START_FUNC();
     MPI_Init(&argc, &argv);
     int rank, comm_size, wrank, step_num = 0;
 
@@ -222,6 +227,7 @@ int main(int argc, char *argv[])
     reader_engine.Close();
     writer_engine.Close();
     MPI_Finalize();
+    TAU_STOP_FUNC();
     return 0;
 }
 
