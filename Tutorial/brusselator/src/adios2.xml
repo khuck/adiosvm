@@ -27,7 +27,7 @@
         ======================================-->
 
     <io name="SimulationOutput">
-        <engine type="SST">
+        <engine type="BPFile">
 <!---
         <variable name="u_norm">
             <operation type="zfp">
@@ -48,7 +48,7 @@
         ====================================-->
 
     <io name="AnalysisOutput">
-        <engine type="SST">
+        <engine type="BPFile">
         </engine>
         <!---
         <variable name="u_norm">
@@ -70,6 +70,7 @@
     <io name="AnalysisOutput2">
         <engine type="BPFile">
         </engine>
+        <!---
         <variable name="u_norm">
             <operation type="zfp">
                 <parameter key="accuracy" value="0.00001"/>
@@ -80,6 +81,7 @@
                 <parameter key="accuracy" value="0.00001"/>
             </operation>
         </variable>
+        -->
     </io>
 
     <!--================================================
@@ -91,7 +93,7 @@
         ===============================================-->
 
         <io name="VizInput">
-        <engine type="SST">
+        <engine type="BPFile">
         </engine>
     </io>
 

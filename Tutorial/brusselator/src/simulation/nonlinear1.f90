@@ -1,3 +1,4 @@
+#include "perfstubs_api/Timer_f.h"
 SUBROUTINE nonlinear1(dt,coef,u,v,decomp)
 	!--------------------------------------------------------------------
 	!
@@ -68,8 +69,10 @@ SUBROUTINE nonlinear1(dt,coef,u,v,decomp)
    											INTENT(IN)     :: v
 	INTEGER(kind=4)										   :: i,j,k
 	COMPLEX(kind=8)                                        :: temp
+    PERFSTUBS_TIMER_START('nonlinear')
 	DO k=decomp%xst(3),decomp%xen(3); DO j=decomp%xst(2),decomp%xen(2); DO i=decomp%xst(1),decomp%xen(1)
      temp=u(i,j,k)
 	 u(i,j,k)=temp/(1-temp*v(i,j,k)*coef*dt)
 	END DO; END DO; END DO
+    PERFSTUBS_TIMER_STOP('nonlinear')
 	END SUBROUTINE nonlinear1

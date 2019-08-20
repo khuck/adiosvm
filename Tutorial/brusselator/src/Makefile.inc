@@ -1,17 +1,24 @@
 # Set variables here
 FC=mpif90
 CXX=mpic++
-FFTW_DIR?=/usr
-ADIOS2_DIR?=/opt/adios2
+FFTW_DIR?=/usr/local/packages/fftw/3.2.2
+ADIOS2_DIR?=/home/users/khuck/src/ADIOS2/install_mpi
 
-override ADIOS2_FFLAGS=`${ADIOS2_DIR}/bin/adios2-config --fortran-flags`
-override ADIOS2_FLIB=`${ADIOS2_DIR}/bin/adios2-config --fortran-libs`
-override ADIOS2_CXXFLAGS=`${ADIOS2_DIR}/bin/adios2-config --cxx-flags`
-override ADIOS2_CXXLIB=`${ADIOS2_DIR}/bin/adios2-config --cxx-libs`
+# Use this line to enable the perfstubs API
+PERFSTUBS_FLAGS=`pkg-config --cflags perfstubs` -DPERFSTUBS_USE_TIMERS
+# Use this line to disable the perfstubs API
+#PERFSTUBS_FLAGS=`pkg-config --cflags perfstubs`
+
+PERFSTUBS_LIB=`pkg-config --libs perfstubs`
+
+override ADIOS2_FFLAGS=`${ADIOS2_DIR}/bin/adios2-config --fortran-flags` ${PERFSTUBS_FLAGS}
+override ADIOS2_FLIB=`${ADIOS2_DIR}/bin/adios2-config --fortran-libs` ${PERFSTUBS_LIB}
+override ADIOS2_CXXFLAGS=`${ADIOS2_DIR}/bin/adios2-config --cxx-flags` ${PERFSTUBS_FLAGS}
+override ADIOS2_CXXLIB=`${ADIOS2_DIR}/bin/adios2-config --cxx-libs` ${PERFSTUBS_LIB}
 
 FFLAGS=-cpp -O3 -DADIOS2
 CXXFLAGS=-O3 -std=c++11
-CFLAGS=-O3
+CFLAGS=-O3 $(PERFSTUBS_FFLAGS)
 
 INCLUDES = -I${FFTW_DIR}/include -I${decompdir}/include ${ADIOS2_FFLAGS}
 FFTW_LIB = -L${FFTW_DIR}/lib -lfftw3

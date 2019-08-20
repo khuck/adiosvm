@@ -1,3 +1,4 @@
+#include "perfstubs_api/Timer_f.h"
 MODULE BRUSSELATOR_IO
     use mpi
     use decomp_2d
@@ -84,9 +85,11 @@ MODULE BRUSSELATOR_IO
         integer                     :: ierr
 
         ierr = 0
+        PERFSTUBS_TIMER_START('write_coordinates')
         call adios2_put (ad_engine, var_xcoords, xcoords, adios2_mode_deferred, ierr)
         call adios2_put (ad_engine, var_ycoords, ycoords, adios2_mode_deferred, ierr)
         call adios2_put (ad_engine, var_zcoords, zcoords, adios2_mode_deferred, ierr)
+        PERFSTUBS_TIMER_STOP('write_coordinates')
 
     END SUBROUTINE write_coordinates
     !----------------------------------------------------------------------------!
@@ -178,6 +181,7 @@ MODULE BRUSSELATOR_IO
         ! create character array with full filename
         ! write out using 2DECOMP&FFT MPI-IO routines
 
+        PERFSTUBS_TIMER_START('savedata')
         ! Write U real
         ind=index(fname,' ') -1
         name_config=fname(1:ind)//'u'
@@ -243,6 +247,7 @@ MODULE BRUSSELATOR_IO
         call adios2_put (ad_engine, var_v_i, field, adios2_mode_deferred, ierr)
         call adios2_end_step (ad_engine, ierr)
 #endif
+        PERFSTUBS_TIMER_STOP('savedata')
     END SUBROUTINE savedata
 
 

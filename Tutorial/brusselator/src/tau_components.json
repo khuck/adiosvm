@@ -1,0 +1,30 @@
+{
+  "/proc/self/io": {
+    "disable": true,
+    "comment": "This will exclude all io specific readings."
+  },
+  "/proc/net/dev": {
+    "disable": true,
+    "comment": "This will exclude all network specific readings."
+  },
+  "/proc/stat": {
+    "comment": "This will exclude all core-specific readings.",
+    "exclude": ["^cpu[0-9]+.*"]
+  },
+  "/proc/meminfo": {
+    "comment": "This will include three readings.",
+    "include": [".*MemAvailable.*", ".*MemFree.*", ".*MemTotal.*"]
+  },
+  "lmsensors": {
+    "comment": "This will include all power readings, if configured with PAPI.",
+    "include": [".*power.*"]
+  },
+  "net": {
+    "comment": "This will include only the first ethernet device, if configured with PAPI.",
+    "include": [".*eno1.*"]
+  },
+  "nvml": {
+    "comment": "This will include only the GPU utilization metrics, if configured with PAPI.",
+    "include": [".*utilization.*"]
+  }
+}

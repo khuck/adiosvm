@@ -6,3 +6,53 @@ Run `make`.
 
 This will build the simulation and the analysis codes in their respective directories.
 
+To include the performance tool API (supported by TAU), first do the following:
+
+```
+git clone https://github.com/khuck/perfstubs.git
+cd perfstubs
+workdir=`pwd`
+rm -rf ${workdir}/build_dynamic
+mkdir ${workdir}/build_dynamic
+cd ${workdir}/build_dynamic
+
+cmake \
+-DCMAKE_C_COMPILER=`which gcc` \
+-DCMAKE_CXX_COMPILER=`which g++` \
+-DCMAKE_Fortran_COMPILER=`which gfortran` \
+-DCMAKE_BUILD_TYPE=Release \
+-DCMAKE_INSTALL_PREFIX=${workdir}/install \
+-DPERFSTUBS_USE_STATIC=OFF \
+..
+make
+make test
+make install
+```
+
+...then include the `-DPERFSTUBS_USE_TIMERS` line in the Makefile.inc file.
+
+To build/configure TAU for this example, do the following:
+
+```
+git clone https://github.com/UO-OACISS/tau2.git
+cd tau2
+./configure -pthread -bfd=download -dwarf=download -mpi -papi=<path-to-papi> -adios=<path-to-adios>
+make install
+export PATH=$PATH:`pwd`/x86_64/bin
+```
+
+To build/configure PAPI (before building TAU) with component support, do the following:
+
+```
+wget http://icl.utk.edu/projects/papi/downloads/papi-5.7.0.tar.gz
+tar -xzf papi-5.7.0.tar.gz
+cd papi-5.7.0/src
+./configure --prefix=<papi-install-path> --with-components="rapl nvml lmsensors net"
+cd components/lmsensors
+./configure --with-sensors-incdir=/usr/include/sensors
+cd ../nvml
+./configure --with-nvml-libdir=<path-to-cuda>/lib64 --with-nvml-incdir=<path-to-cuda>/include --with-cuda-dir=<path-to-cuda>
+cd ../..
+make
+make install
+```

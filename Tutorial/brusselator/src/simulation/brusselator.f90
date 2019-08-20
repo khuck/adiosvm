@@ -79,6 +79,8 @@
 !     (http://www.2decomp.org/index.html)
 ! MPI library
 
+#include "perfstubs_api/Timer_f.h"
+
 PROGRAM main
     USE decomp_2d
     USE decomp_2d_fft
@@ -146,6 +148,7 @@ PROGRAM main
     INTEGER(kind=4)   ::  pp=3
     INTEGER(kind=4)   ::  ss=6
 
+    PERFSTUBS_TIMER_START('main')
     plottime=plotgap
     ! initialisation of MPI
     CALL system_clock(starttot,count_rate)
@@ -266,6 +269,7 @@ PROGRAM main
             END IF
             CALL savedata(Nx,Ny,Nz,plotnum,fname,savefield,uhigh,vhigh,decomp,n)
             ! If time greater than plotting time
+            PERFSTUBS_DUMP_DATA()
         END IF
     END DO  !timestepping
 
@@ -303,6 +307,7 @@ PROGRAM main
         PRINT*,'Program took total',REAL(finishtot-starttot)/REAL(count_rate),'for execution', &
             REAL(finishtot-starttot)/REAL(count_rate)*numprocs
     END IF
+    PERFSTUBS_TIMER_STOP('main')
 END PROGRAM main
 
 !!***************************
