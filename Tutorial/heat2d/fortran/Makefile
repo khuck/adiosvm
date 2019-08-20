@@ -1,6 +1,8 @@
 
 default: 
-	@echo "Make targets at this level are for cleaning only:"
+	@echo "Make targets  :"
+	@echo "  adios2      :  build ADIOS examples"
+	@echo "  hdf5        :  build HDF5 examples"
 	@echo "  clean-code  :  recursively delete objects and binaries"
 	@echo "  clean-data  :  recursively delete files created by the examples"
 	@echo "  distclean   :  clean-code and clean-data"
@@ -8,7 +10,15 @@ default:
 all: default
 help: default
 
-subdirs = simulation analysis query
+adios2:
+	cd simulation; make adios2
+	cd analysis; make adios2_file adios2_stream
+
+hdf5:
+	cd simulation; make phdf5 hdf5_a hdf5_b
+	cd analysis; make hdf5_file phdf5_file
+
+subdirs = simulation analysis
 
 clean-data:
 	rm -f *.o *.mod *.fh core.*
@@ -21,10 +31,6 @@ clean-data:
 
 clean-code:
 	rm -f *.o *.mod *.fh core.*
-	rm -f heat_transfer_fort 
-	rm -f heat_transfer_adios1 heat_transfer_adios1_gpp heat_transfer_adios1_noxml
-	rm -f heat_transfer_adios2  heat_transfer_noxml
-	rm -f heat_transfer_hdf5_a heat_transfer_hdf5_b heat_transfer_phdf5
 	for dir in $(subdirs); do echo "Clean $${dir}"; (cd $${dir}; make clean-code); done
 
 distclean: clean-code clean-data

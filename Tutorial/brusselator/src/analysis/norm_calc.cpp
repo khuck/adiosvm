@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <cstdint>
 #include <cmath>
+#include <thread>
 #include "adios2.h"
 
 /*
@@ -37,10 +38,10 @@ std::vector<T> compute_norm(const std::vector<T>& real, const std::vector<T>& im
 void printUsage()
 {
     std::cout
-        << "Usage: analysis input_filename output_filename output_norm_only\n"
+        << "Usage: analysis input_filename output_filename [output_inputdata]\n"
         << "  input_filename:   Name of the input file handle for reading data\n"
         << "  output_filename:  Name of the output file to which data must be written\n"
-        << "  output_norm_only: Enter 1 if you only want to write the norms of U and V, and not the original variables\n\n";
+        << "  output_inputdata: Enter 0 if you want to write the original variables besides the analysis results\n\n";
 }
 
 /*
@@ -60,7 +61,7 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(comm, &rank);
     MPI_Comm_size(comm, &comm_size);
 
-    if (argc < 4)
+    if (argc < 3)
     {
         std::cout << "Not enough arguments\n";
         if (rank == 0)
@@ -70,13 +71,15 @@ int main(int argc, char *argv[])
 
     std::string in_filename;
     std::string out_filename;
-    std::string out_norms_only;
-    bool write_norms_only = false;
+    bool write_norms_only = true;
     in_filename = argv[1];
     out_filename = argv[2];
-    out_norms_only = argv[3];
-    if (out_norms_only.compare("1") == 0)
-        write_norms_only = true;
+    if (argc >= 4)
+    {
+        std::string out_norms_only = argv[3];
+        if (out_norms_only.compare("0") == 0)
+            write_norms_only = false;
+    }
 
 
     std::size_t u_global_size, v_global_size;
@@ -103,7 +106,7 @@ int main(int argc, char *argv[])
     adios2::Variable<double> var_u_real_out, var_u_imag_out, var_v_real_out, var_v_imag_out;
 
     // adios2 io object and engine init
-    adios2::ADIOS ad ("adios2_config.xml", comm, adios2::DebugON);
+    adios2::ADIOS ad ("adios2.xml", comm, adios2::DebugON);
 
     // IO object and engine for reading
     adios2::IO reader_io = ad.DeclareIO("SimulationOutput");
@@ -117,10 +120,18 @@ int main(int argc, char *argv[])
     while(true) {
 
         // Begin step
-        adios2::StepStatus read_status  = reader_engine.BeginStep (adios2::StepMode::NextAvailable, 0.0f);
-        if (read_status != adios2::StepStatus::OK)
+        adios2::StepStatus read_status = reader_engine.BeginStep(adios2::StepMode::Read, 10.0f);
+        if (read_status == adios2::StepStatus::NotReady)
+        {
+            // std::cout << "Stream not ready yet. Waiting...\n";
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            continue;
+        }
+        else if (read_status != adios2::StepStatus::OK)
+        {
             break;
-
+        }
+ 
         step_num ++;
         if (rank == 0)
             std::cout << "Step: " << step_num << std::endl;

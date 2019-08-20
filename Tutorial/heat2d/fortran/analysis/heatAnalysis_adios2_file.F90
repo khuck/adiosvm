@@ -23,7 +23,7 @@ program reader
     ! Variable information
     integer                  :: ndim
     integer*8, dimension(:), allocatable  :: dims
-    integer*8                :: steps_start, steps_count
+    integer*8                :: steps_count
     ! Offsets and sizes
     integer*8, dimension(2)  :: offset=0, readsize=1
 
@@ -55,7 +55,7 @@ program reader
     ! We can inquire the dimensions, type and number of steps 
     ! of a variable directly from the metadata
     call adios2_inquire_variable(var_T, io, "T", ierr)
-    call adios2_variable_shape(var_T, ndim, dims, ierr)
+    call adios2_variable_shape(dims, ndim, var_T, ierr)
     if (rank == 0) then
         print '(" Global array size: ",i0, "x", i0)', dims(1), dims(2)
     endif
@@ -71,21 +71,23 @@ program reader
     endif
           
     allocate( T(readsize(1), readsize(2)) )
-
-    !TODO:  Get the number of available steps
-    call adios2_variable_steps_start(var_T, steps_start, ierr)
-    call adios2_variable_steps(var_T, steps_count, ierr)
-    ts = steps_start+steps_count-1 ! Let's read the last timestep
-    if (rank == 0) then
-        print '(" First available step = ", i0)', steps_start
-        print '(" Available steps      = ", i0)', steps_count
-        print '(" Read step            = ", i0)', ts
-    endif
-    call adios2_set_step_selection(var_T, ts*1_8, 1_8, ierr)
     call adios2_set_selection(var_T, 2, offset, readsize, ierr)
-    call adios2_get(fh, var_T, T, ierr)
+
+    call adios2_variable_steps(steps_count, var_T, ierr)
+    if (rank == 0) then
+        print '(" Available steps      = ", i0)', steps_count
+    endif
+
+    do ts = 0,steps_count-1
+        if (rank == 0) then
+            print '(" Read step       = ", i0)', ts
+        endif
+        call adios2_set_step_selection(var_T, ts*1_8, 1_8, ierr)
+        call adios2_get(fh, var_T, T, adios2_mode_sync, ierr)
+        call print_array (T, offset, rank, ts)
+    enddo
+
     call adios2_close(fh, ierr)
-    call print_array (T, offset, rank, ts)
 
     ! Terminate
     deallocate(dims)

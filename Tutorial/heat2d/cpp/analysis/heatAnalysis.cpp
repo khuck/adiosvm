@@ -92,15 +92,13 @@ int main(int argc, char *argv[])
         adios2::IO outIO = ad.DeclareIO("AnalysisOutput");
         if (!rank)
         {
-//            std::cout << "Using " << inIO.m_EngineType << " engine for input" << std::endl;
-//            std::cout << "Using " << outIO.m_EngineType << " engine for output" << std::endl;
+            std::cout << "Using " << inIO.EngineType() << " engine for input" << std::endl;
+            std::cout << "Using " << outIO.EngineType() << " engine for output" << std::endl;
         }
 
 
         adios2::Engine reader =
             inIO.Open(settings.inputfile, adios2::Mode::Read, mpiReaderComm);
-
-        reader.FixedSchedule(); // a promise here that we don't change the read pattern over steps
 
         std::vector<double> Tin;
         std::vector<double> Tout;
@@ -108,6 +106,8 @@ int main(int argc, char *argv[])
         adios2::Variable<double> vTin;
         adios2::Variable<double> vTout;
         adios2::Variable<double> vdT;
+        adios2::Attribute<std::string> aT_unit;
+        adios2::Attribute<std::string> aT_desc;
         adios2::Engine writer;
         bool firstStep = true;
         int step = 0;
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
         while (true)
         {
             adios2::StepStatus status =
-                reader.BeginStep(adios2::StepMode::NextAvailable, 10.0f);
+                reader.BeginStep(adios2::StepMode::Read, 10.0f);
             if (status == adios2::StepStatus::NotReady)
             {
                 // std::cout << "Stream not ready yet. Waiting...\n";
@@ -130,6 +130,8 @@ int main(int argc, char *argv[])
             // Variable objects disappear between steps so we need this every
             // step
             vTin = inIO.InquireVariable<double>("T");
+            aT_unit = inIO.InquireAttribute<std::string>("T/unit");
+            aT_desc = inIO.InquireAttribute<std::string>("T/description");
 
             if (firstStep)
             {
@@ -154,7 +156,14 @@ int main(int argc, char *argv[])
                     "dT", {gndx, gndy}, settings.offset, settings.readsize);
                 writer = outIO.Open(settings.outputfile, adios2::Mode::Write,
                                      mpiReaderComm);
-                writer.FixedSchedule();
+                outIO.DefineAttribute<std::string>("unit", 
+                        aT_unit.Data()[0], vTout.Name());
+                outIO.DefineAttribute<std::string>("T/description", 
+                        aT_desc.Data()[0]);
+                outIO.DefineAttribute<std::string>("description", 
+                        "Temperature difference between two steps calculated in analysis", "dT");
+
+                writer.LockWriterDefinitions();
 
                 MPI_Barrier(mpiReaderComm); // sync processes just for stdout
             }
@@ -162,6 +171,11 @@ int main(int argc, char *argv[])
             // Create a 2D selection for the subset
             vTin.SetSelection(
                 adios2::Box<adios2::Dims>(settings.offset, settings.readsize));
+
+            if (firstStep)
+            {
+                reader.LockReaderSelections(); // a promise here that we don't change the read pattern over steps
+            }
 
             // Arrays are read by scheduling one or more of them
             // and performing the reads at once

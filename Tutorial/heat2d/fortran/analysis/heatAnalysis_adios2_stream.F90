@@ -10,7 +10,7 @@ program reader
     ! MPI variables
     integer :: wnproc, wrank, color
     integer :: app_comm, nproc, rank
-    integer :: ierr
+    integer :: ierr, istatus
 
     integer :: ts=0   ! actual step in stream
     integer :: i,j
@@ -59,8 +59,13 @@ program reader
 
     ts = 0;
     do 
-        call adios2_begin_step(fh, adios2_step_mode_next_available, -1.0, ierr)
-        if (ierr /= adios2_step_status_ok) then
+        call adios2_begin_step(fh, adios2_step_mode_read, -1.0, istatus, ierr)
+        if (ierr /= 0) then
+            print '(" Failure when trying to get next step: ",a)', streamname
+            exit
+        endif
+        if (istatus == adios2_step_status_end_of_stream) then
+            ! Stream has terminated, no more steps are available
             exit
         endif
 
@@ -72,7 +77,7 @@ program reader
         if (ts==0) then
             ! We can inquire the dimensions, type and number of steps 
             ! of a variable directly from the metadata
-            call adios2_variable_shape(var_T, ndim, dims, ierr)
+            call adios2_variable_shape(dims, ndim, var_T, ierr)
             if (rank == 0) then
                 print '(" Global array size: ",i0, "x", i0)', dims(1), dims(2)
             endif

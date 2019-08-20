@@ -4,21 +4,12 @@
     <!-- example engines 
 
         <engine type="BPFile"/>
+        <engine type="BP4"/>
         <engine type="HDF5"/>
         <engine type="SST"/>
         <engine type="InSituMPI"/>
+        <engine type="DataMan">
 
-        DataMan is more elaborate with a transport and IP address required
-        <io name="heat">
-            <engine type="DataMan">
-                <parameter key="Blocking" value="no"/>
-            </engine>
-
-            <transport type="WAN">
-                <parameter key="Library" value="ZMQ"/>
-                <parameter key="IPAddress" value="127.0.0.1"/>
-            </transport>
-        </io>
      -->
 
     <!-- example operators and operations
@@ -26,12 +17,11 @@
         Operations go inside an IO group (but not inside engine group)
     
     <operator name="CompressorZFP" type="zfp"/>
-    <operator name="CompressorSZ" type="sz"/>
 
     <io name="SimulationOutput">
         <variable name="T">
             <operation operator="CompressorZFP">
-                <parameter key="accuracy" value="0.0001"/>
+                <parameter key="accuracy" value="0.01"/>
             </operation>
         </variable>
     </io>
@@ -39,16 +29,12 @@
     -->
 
     <!--===========================================
-        Create an operator inside the ADIOS object 
-        ===========================================-->
-    <operator name="CompressorZFP" type="zfp"/>
-
-    <!--===========================================
            Configuration for the Simulation Output 
         ==========================================-->
 
     <io name="SimulationOutput">
-        <engine type="BPFile">
+        <engine type="BP4">
+            <parameter key="OpenTimeoutSecs" value="10.0"/>
         </engine>
     </io>
 
@@ -58,7 +44,8 @@
         =========================================-->
     
     <io name="AnalysisOutput">
-        <engine type="BPFile">
+        <engine type="BP4">
+            <parameter key="OpenTimeoutSecs" value="10.0"/>
         </engine>
     </io>
 
@@ -71,7 +58,8 @@
         =============================================-->
     
     <io name="VizInput">
-        <engine type="BPFile">
+        <engine type="BP4">
+            <parameter key="OpenTimeoutSecs" value="10.0"/>
         </engine>
     </io>
 

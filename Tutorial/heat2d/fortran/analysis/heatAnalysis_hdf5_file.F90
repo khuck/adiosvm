@@ -8,7 +8,7 @@ program reader
     character(len=256) :: filename, errmsg
     integer :: nproc          ! number of processors
     
-    real*8, dimension(:,:,:),   allocatable :: T, dT 
+    real*8, dimension(:,:),   allocatable :: T
 
     ! Offsets and sizes
     integer :: gndx, gndy
@@ -37,10 +37,14 @@ program reader
     call MPI_Comm_size (group_comm, nproc , ierr)
     call h5open_f(ierr)
 
-    write(filename,'("../heat.h5")')
+    call processArgs()
+
+    if (rank == 0) then
+        print '(" Input file: ",a)', trim(filename)
+    endif
 
     ! Open the file
-    call h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, ierr)
+    call h5fopen_f (filename, H5F_ACC_RDONLY_F, file_id, ierr)
 
     ! Open the T dataset
     call h5dopen_f(file_id, "T", dset_id, ierr)
@@ -56,29 +60,35 @@ program reader
     readsize(2) = gndy / nproc
     readsize(3) = 1 ! Read one timestep
 
+    offset(1)   = 0
+    offset(2)   = rank * readsize(2)
+
     if (rank == nproc-1) then  ! last process should read all the rest of columns
         readsize(2) = gndy - readsize(2)*(nproc-1)
-        !readsize(2) = 3
     endif
           
-    offset(1)   = 0
-    offset(2)   = rank * (gndy / nproc)
-    offset(3)   = dims(3)-1 ! Read the latest timestep
+    allocate( T(readsize(1), readsize(2)) )
 
-    ! Create a memory space for the partial read
-    call h5screate_simple_f (3, readsize, memspace, ierr)
+    
+    do ts = 0,dims(3)-1
 
-    allocate( T(readsize(1), readsize(2), readsize(3)) )
+        if (rank == 0) then
+            print '(" Read step       = ", i0)', ts
+        endif
 
-    call h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, offset, &
-                               readsize, ierr)
-       
-    call h5dread_f(dset_id, H5T_NATIVE_DOUBLE, T, readsize, ierr, &
-                   memspace, dataspace, H5P_DEFAULT_F)
+        offset(3) = ts
 
+        ! Create a memory space for the partial read
+        call h5screate_simple_f (3, readsize, memspace, ierr)
 
-    ts   = dims(3)-1 ! Read the latest timestep
-    call print_array (T(:,:,1), offset, rank, ts)
+        call h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, offset, &
+                                   readsize, ierr)
+               
+        call h5dread_f(dset_id, H5T_NATIVE_DOUBLE, T, readsize, ierr, &
+                       memspace, dataspace, H5P_DEFAULT_F)
+
+        call print_array (T, offset, rank, ts)
+    enddo
 
     call h5dclose_f(dset_id, ierr)
 
@@ -87,7 +97,39 @@ program reader
     call h5close_f(ierr)
 
     ! Terminate
-    !call adios_selection_delete (sel)
-    !call adios_read_finalize_method (ADIOS_READ_METHOD_BP, ierr)
+    deallocate(T)
     call MPI_Finalize (ierr)
+
+contains
+
+    !!***************************
+  subroutine usage()
+    print *, "Usage: heatAnalysis_hdf5_file  input"
+    print *, "input:  name of HDF5 input file"
+  end subroutine usage
+
+!!***************************
+  subroutine processArgs()
+
+#ifndef __GFORTRAN__
+#ifndef __GNUC__
+    interface
+         integer function iargc()
+         end function iargc
+    end interface
+#endif
+#endif
+
+    integer :: numargs
+
+    !! process arguments
+    numargs = iargc()
+    !print *,"Number of arguments:",numargs
+    if ( numargs < 1 ) then
+        call usage()
+        call exit(1)
+    endif
+    call getarg(1, filename)
+
+  end subroutine processArgs
   end program reader  

@@ -245,21 +245,20 @@ II. Preparations to install ADIOS
 6. Python/Numpy support
 
    To build Adios python wrapper, install following packages by:
-   $ sudo apt-get install python python-dev
-   $ sudo apt-get install python-numpy
+   $ sudo apt-get install python3 python3-dev
 
    Note: To use a parallel version, we need mpi4py. 
 
-   $ sudo apt-get install python-pip python-tk
-   $ sudo -H pip install mpi4py matplotlib
+   $ sudo apt-get install python3-pip python3-tk
+   $ sudo -H pip3 install numpy mpi4py matplotlib
    
    Alternatively, we can install from a source code too:
 
    $ wget https://bitbucket.org/mpi4py/mpi4py/downloads/mpi4py-2.0.0.tar.gz
    $ tar xvf mpi4py-2.0.0.tar.gz
    $ cd mpi4py-2.0.0
-   $ python setup.py build
-   $ sudo python setup.py install
+   $ python3 setup.py build
+   $ sudo python3 setup.py install
 
 
 9. Fastbit indexing support (needed for queries) for ADIOS 1.x
@@ -317,7 +316,7 @@ III. ADIOS Installation
            -DADIOS2_USE_MPI=ON \
            -DADIOS2_USE_Fortran=ON \
            -DADIOS2_USE_Python=ON \
-           -DPYTHON_EXECUTABLE=/usr/bin/python2 \
+           -DPYTHON_EXECUTABLE=/usr/bin/python3 \
            -DADIOS2_USE_DataMan=ON \
            -DADIOS2_USE_HDF5=ON  \
            -DHDF5_ROOT=/opt/hdf5-parallel \
@@ -388,26 +387,25 @@ IV. ADIOS 1.x for compression and queries
 5. Build and install python wrapper
 
    To build Adios python wrapper, install following packages by:
-   $ sudo apt-get install python python-dev
-   $ sudo apt-get install python-numpy
+   $ sudo apt-get install python3 python3-dev python3-tk
 
    Note: To use a parallel version, we need mpi4py. 
 
-   $ sudo apt-get install python-pip
-   $ sudo -H pip install mpi4py
+   $ sudo apt-get install python3-pip
+   $ sudo -H pip3 install numpy mpi4py matplotlib
    
    Alternatively, we can install from a source code too:
 
    $ wget https://bitbucket.org/mpi4py/mpi4py/downloads/mpi4py-2.0.0.tar.gz
    $ tar xvf mpi4py-2.0.0.tar.gz
    $ cd mpi4py-2.0.0
-   $ python setup.py build
-   $ sudo python setup.py install
+   $ python3 setup.py build
+   $ sudo python3 setup.py install
 
    Then, we are ready to install adios and adios_mpi python module. An
-   easy way is to use "pip".
+   easy way is to use "pip3".
    
-   $ sudo -H "PATH=$PATH" pip install --upgrade \
+   $ sudo -H "PATH=$PATH" pip3 install --upgrade \
      --global-option build_ext --global-option -lrt adios adios_mpi
 
    If there is any error, we can build from source. Go to the
@@ -415,21 +413,21 @@ IV. ADIOS 1.x for compression and queries
    $ cd wrapper/numpy
 
    Type the following to build Adios python wrapper:
-   $ python setup.py build_ext 
+   $ python3 setup.py build_ext 
    If not working, add " -lrt"
 
    The following command is to install:
-   $ sudo "PATH=$PATH" python setup.py install
+   $ sudo "PATH=$PATH" python3 setup.py install
 
    Same for adios_mpi module:
-   $ python setup_mpi.py build_ext -lrt
-   $ sudo "PATH=$PATH" python setup_mpi.py install
+   $ python3 setup_mpi.py build_ext -lrt
+   $ sudo "PATH=$PATH" python3 setup_mpi.py install
 
    Test:
    A quick test can be done:
    $ cd wrapper/numpy/tests
-   $ python test_adios.py
-   $ mpirun -n 4 python test_adios_mpi.py
+   $ python3 test_adios.py
+   $ mpirun -n 4 python3 test_adios_mpi.py
 
 
 V. ADIOS Tutorial code
@@ -441,6 +439,9 @@ V. ADIOS Tutorial code
 1. Linux Packages
    KSTAR demo requires gnuplot
    $ sudo apt-get install gnuplot
+
+   Brusselator demo requires FFTW3
+   $ sudo apt-get install libfftw3-dev
    
 
 VI. Build VTK-M from source
@@ -529,47 +530,38 @@ Complicated way:
 
 
 3. Build Visit from svn trunk
-- Get Visit trunk from repository and build against dependencies
-  that has been built in the previous step
-- You need to do step 2 (build visit from source release)
+- This has to be built on a second scratch disk. It requires ~10GB space. 
+  The installation is just 0.5GB.
 
-   $ cd ~/Software
-   $ svn co http://portal.nersc.gov/svn/visit/trunk/src visit.src
-   $ cd visit.src
-   
-   Get the local build cmake config created by build_visit2.7.2 and edit
-   $ cp ~/Software/visit/adiosVM.cmake ./config-site
-   
-     - Add CMAKE_INSTALL_PREFIX to point to desired installation target (/opt/visit):
+   $ cd /work/adios
+   $ mkdir visit.build
+   $ cd visit.build/
+   $ svn co http://visit.ilight.com/svn/visit/trunk/src/svn_bin svn_bin
+   $ ln -s svn_bin/build_visit .
+   $ ln -s svn_bin/bv_support .
+   $ git clone github:ornladios/ADIOS2.git
+   $ ./build_visit --system-cmake --system-python --adios2 --silo --szip --zlib --hdf5 --makeflags -j4 --prefix /opt/visit
 
-         VISIT_OPTION_DEFAULT(CMAKE_INSTALL_PREFIX /opt/visit)
+   when it is failed or succeeded with building the Visit source (not just the third-parties),
+   i.e. when trunk/ already exists
 
-     - Edit VISIT_ADIOS_DIR to point to desired ADIOS install (/opt/adios1/):
+   $ cp adiosVM.cmake trunk/src/config-site
+   -- edit trunk/src/config-site/adiosVM.cmake  and point to a SERIAL ADIOS2 installation
+       VISIT_OPTION_DEFAULT(VISIT_ADIOS2_DIR /opt/adios2-serial)
+       VISIT_OPTION_DEFAULT(VISIT_ADIOS2_PAR_DIR /opt/adios2)
 
-         VISIT_OPTION_DEFAULT(VISIT_ADIOS_DIR /opt/adios1/)
 
+   and build manually after this:
 
-   Configure visit with cmake that was built by visit release
-   $ rm CMakeCache.txt
-   $ ~/Software/visit/cmake-2.8.10.2/bin/cmake .
+   $ cd trunk
+   $ mkdir -p build
+   $ cd build
+   $ cmake ../src
    $ make -j 4
-   $ make install
 
 
-   If a dependency package's version is updated, you need to download and build a new one.
-   E.g. with VTK 6.1
-
-   $ cd ~/Software/visit
-   $ wget http://www.vtk.org/files/release/6.1/VTK-6.1.0.tar.gz
-   $ tar zxf VTK-6.1.0.tar.gz
-   $ mkdir VTK-6.1.0-build
-   $ cd VTK-6.1.0-build
-   
-   In ../build_visit2.7.1_log, search for "Configuring VTK . . ." and see how cmake was called (a long line).
-   Replace the CMAKE_INSTALL_PREFIX:PATH and run that command
-
-   $ "/home/adios/Software/visit/visit/cmake/2.8.10.2/linux-x86_64_gcc-4.6/bin/cmake" <whatever appears here> ../VTK-6.1.0
-
+   $ sudo make install
+   This should put the installation files into /opt/visit/<version> and the executable script into /opt/visit/bin
 
 
 

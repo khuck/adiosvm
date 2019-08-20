@@ -1,10 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 """
 Example:
 
-$ mpirun -n 1 python ./heat_transfer.py -f inputstream -o outputstream -v varname
+$ mpirun -n 1 python ./heat_transfer.py -i inputstream -o outputstream -v varname
+
+The plotting part is serial, so in practice use 1 process only. 
+However the decomposition and read part works in parallel in this script.
 """
 
 import adios2
@@ -78,22 +81,22 @@ if __name__ == "__main__":
     # Read the data from this object
     fr = adios2.open(args.instream, "r", mpi.comm_world, "adios2.xml", "VizInput")
 
-    # Get the ADIOS selections -- equally partition the data if parallelization is requested
-    start, size, fullshape = mpi.Partition(fr, args)
-
     # Read through the steps, one at a time
-    step = 0
-    while (not fr.eof()):
-        inpstep = fr.currentstep()
-        data = fr.read(args.varname, start, size, endl=True)
+    firststep = True
+    for step in fr:
+        if firststep:
+            # Get the ADIOS selections -- equally partition the data if parallelization is requested
+            start, size, fullshape = mpi.Partition(fr, args)
+            firststep = False
+
+        inpstep = fr.current_step()
+        data = fr.read(args.varname, start, size)
 
         # Print a couple simple diagnostics
         avg = np.average(data)
         std = np.std(data)
         print("step:{0}, rank: {1}, avg: {2:.3f}, std: {3:.3f}".format(inpstep, mpi.rank['world'], avg, std))
         Plot2D(args, fr, data, fullshape, inpstep, fontsize, displaysec)
-
-        step += 1
 
     fr.close()
 

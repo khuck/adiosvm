@@ -75,7 +75,6 @@ int main(int argc, char *argv[])
 
             adios2::Engine reader = inIO.Open(
                 settings.inputfile, adios2::Mode::Read, MPI_COMM_SELF);
-            reader.FixedSchedule(); // a promise here that we don't change the read pattern over steps
 
             std::vector<double> Tin;
             adios2::Variable<double> vTin;
@@ -85,7 +84,7 @@ int main(int argc, char *argv[])
             while (true)
             {
                 adios2::StepStatus status =
-                    reader.BeginStep(adios2::StepMode::NextAvailable, 10.0f);
+                    reader.BeginStep(adios2::StepMode::Read, 10.0f);
                 if (status == adios2::StepStatus::NotReady)
                 {
                     // std::cout << "Stream not ready yet. Waiting...\n";
@@ -124,6 +123,12 @@ int main(int argc, char *argv[])
                 vTin.SetSelection(
                     adios2::Box<adios2::Dims>({0, 0}, vTin.Shape()));
                 reader.Get<double>(vTin, Tin.data());
+
+                if (firstStep)
+                {
+                    reader.LockReaderSelections(); // a promise here that we don't change the read pattern over steps
+                }
+
                 reader.EndStep();
 
                 std::cout << "Visualization step " << step
