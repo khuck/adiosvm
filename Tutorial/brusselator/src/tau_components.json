@@ -1,4 +1,5 @@
 {
+  "periodicity seconds": 3,
   "/proc/self/io": {
     "disable": true,
     "comment": "This will exclude all io specific readings."

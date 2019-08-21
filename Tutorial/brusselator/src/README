@@ -6,6 +6,11 @@ Run `make`.
 
 This will build the simulation and the analysis codes in their respective directories.
 
+The simulation and analysis codes are instrumented with the perfstubs library (see
+https://github.com/khuck/perfstubs for details).  The instrumentation will do
+nothing unless a tool that implements the API is linked into the application
+either at runtime or at link time.
+
 To include the performance tool API (supported by TAU), first do the following:
 
 ```
@@ -27,18 +32,21 @@ cmake \
 make
 make test
 make install
+cd ../..
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:`pwd`/perfstubs/install/lib/pkgconfig
 ```
 
 ...then include the `-DPERFSTUBS_USE_TIMERS` line in the Makefile.inc file.
 
-To build/configure TAU for this example, do the following:
+To build/configure TAU for this example, do the following (the papi flag is optional):
 
 ```
 git clone https://github.com/UO-OACISS/tau2.git
 cd tau2
-./configure -pthread -bfd=download -dwarf=download -mpi -papi=<path-to-papi> -adios=<path-to-adios>
+./configure -pthread -bfd=download -dwarf=download -mpi -adios=<path-to-adios>
 make install
-export PATH=$PATH:`pwd`/x86_64/bin
+export PATH=`pwd`/x86_64/bin:$PATH
+cd ..
 ```
 
 To build/configure PAPI (before building TAU) with component support, do the following:

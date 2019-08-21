@@ -14,6 +14,7 @@
 #include <cmath>
 #include <thread>
 #include "adios2.h"
+#include "perfstubs_api/Timer.h"
 
 /*
  * Function to compute the norm of a vector
@@ -21,6 +22,7 @@
 template <class T> 
 std::vector<T> compute_norm(const std::vector<T>& real, const std::vector<T>& imag)
 {
+    PERFSTUBS_SCOPED_TIMER_FUNC()
     if(real.size() != imag.size()) 
         throw std::invalid_argument("ERROR: real and imag parts have different sizes\n"); 
     
@@ -49,6 +51,8 @@ void printUsage()
  */
 int main(int argc, char *argv[])
 {
+    PERFSTUBS_INIT()
+    PERFSTUBS_SCOPED_TIMER_FUNC()
     MPI_Init(&argc, &argv);
     int rank, comm_size, wrank, step_num = 0;
 

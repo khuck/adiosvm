@@ -1,18 +1,21 @@
 #!/bin/bash
 
-rm -rf *.bp *.bp.dir *.bp.sst profile.* dump.*
-
 # Run without TAU
-#mpirun -np 8 ./simulation/Brusselator simulation.data 16 16 16 1000 100
+rm -rf *.bp *.bp.dir *.bp.sst profile.* dump.*
+mpirun -np 8 ./simulation/Brusselator simulation.data 16 16 16 1000 100
 
 # Run with TAU
-#mpirun -np 8 tau_exec -T papi,mpi,pthread,adios2 ./simulation/Brusselator simulation.data 16 16 16 1000 100
+rm -rf *.bp *.bp.dir *.bp.sst
+mpirun -np 8 tau_exec -T mpi,pthread,adios2 ./simulation/Brusselator simulation.data 16 16 16 1000 100
 
 # Run with TAU and ADIOS2 output of profile data
-#mpirun -np 8 tau_exec -T papi,mpi,pthread,adios2 -adios2 ./simulation/Brusselator simulation.data 16 16 16 1000 100
+rm -rf *.bp *.bp.dir *.bp.sst profile.* dump.*
+mpirun -np 8 tau_exec -T mpi,pthread,adios2 -adios2 ./simulation/Brusselator simulation.data 16 16 16 1000 100
 
-# Run with TAU and ADIOS2 output of profile data, and get periodic OS/HW metrics
-mpirun -np 8 tau_exec -T papi,mpi,pthread,adios2 -adios2 -papi_components ./simulation/Brusselator simulation.data 16 16 16 1000 100
+# Run with TAU and ADIOS2 output of profile data, and get periodic OS/HW metrics 
+# see ./tau_components.json to control frequency and detail
+rm -rf *.bp *.bp.dir *.bp.sst profile.* dump.*
+mpirun -np 8 tau_exec -T mpi,pthread,adios2 -adios2 -papi_components ./simulation/Brusselator simulation.data 16 16 16 1000 100
 
 # To run with analysis reader, enable the bottom two lines
 
