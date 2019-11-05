@@ -11,7 +11,7 @@ https://github.com/khuck/perfstubs for details).  The instrumentation will do
 nothing unless a tool that implements the API is linked into the application
 either at runtime or at link time.
 
-To include the performance tool API (supported by TAU), first do the following:
+To include the performance tool API (supported by TAU), first do the following (from this directory):
 
 ```
 cd ../..
