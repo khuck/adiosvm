@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "gray-scott.h"
+#include "perfstubs_api/Timer.h"
 
 GrayScott::GrayScott(const Settings &settings, MPI_Comm comm)
     : settings(settings), comm(comm), rand_dev(), mt_gen(rand_dev()),
@@ -18,12 +19,14 @@ GrayScott::~GrayScott() {}
 
 void GrayScott::init()
 {
+    PERFSTUBS_SCOPED_TIMER_FUNC()
     init_mpi();
     init_field();
 }
 
 void GrayScott::iterate()
 {
+    PERFSTUBS_SCOPED_TIMER_FUNC()
     exchange(u, v);
     calc(u, v, u2, v2);
 
@@ -65,6 +68,7 @@ void GrayScott::data_noghost(const std::vector<double> &data,
 
 void GrayScott::init_field()
 {
+    PERFSTUBS_SCOPED_TIMER_FUNC()
     const int V = (size_x + 2) * (size_y + 2) * (size_z + 2);
     u.resize(V, 1.0);
     v.resize(V, 0.0);
@@ -97,6 +101,7 @@ double GrayScott::calcV(double tu, double tv) const
 double GrayScott::laplacian(int x, int y, int z,
                             const std::vector<double> &s) const
 {
+    PERFSTUBS_SCOPED_TIMER_FUNC()
     double ts = 0.0;
     ts += s[l2i(x - 1, y, z)];
     ts += s[l2i(x + 1, y, z)];
@@ -112,6 +117,7 @@ double GrayScott::laplacian(int x, int y, int z,
 void GrayScott::calc(const std::vector<double> &u, const std::vector<double> &v,
                      std::vector<double> &u2, std::vector<double> &v2)
 {
+    PERFSTUBS_SCOPED_TIMER_FUNC()
     for (int z = 1; z < size_z + 1; z++) {
         for (int y = 1; y < size_y + 1; y++) {
             for (int x = 1; x < size_x + 1; x++) {
@@ -189,6 +195,7 @@ void GrayScott::init_mpi()
 
 void GrayScott::exchange_xy(std::vector<double> &local_data) const
 {
+    PERFSTUBS_SCOPED_TIMER_FUNC()
     MPI_Status st;
 
     // Send XY face z=size_z to north and receive z=0 from south
@@ -203,6 +210,7 @@ void GrayScott::exchange_xy(std::vector<double> &local_data) const
 
 void GrayScott::exchange_xz(std::vector<double> &local_data) const
 {
+    PERFSTUBS_SCOPED_TIMER_FUNC()
     MPI_Status st;
 
     // Send XZ face y=size_y to up and receive y=0 from down
@@ -217,6 +225,7 @@ void GrayScott::exchange_xz(std::vector<double> &local_data) const
 
 void GrayScott::exchange_yz(std::vector<double> &local_data) const
 {
+    PERFSTUBS_SCOPED_TIMER_FUNC()
     MPI_Status st;
 
     // Send YZ face x=size_x to east and receive x=0 from west
@@ -231,6 +240,7 @@ void GrayScott::exchange_yz(std::vector<double> &local_data) const
 
 void GrayScott::exchange(std::vector<double> &u, std::vector<double> &v) const
 {
+    PERFSTUBS_SCOPED_TIMER_FUNC()
     exchange_xy(u);
     exchange_xz(u);
     exchange_yz(u);
@@ -243,6 +253,7 @@ void GrayScott::exchange(std::vector<double> &u, std::vector<double> &v) const
 void GrayScott::data_no_ghost_common(const std::vector<double> &data,
                                      double *data_no_ghost) const
 {
+    PERFSTUBS_SCOPED_TIMER_FUNC()
     for (int z = 1; z < size_z + 1; z++) {
         for (int y = 1; y < size_y + 1; y++) {
             for (int x = 1; x < size_x + 1; x++) {

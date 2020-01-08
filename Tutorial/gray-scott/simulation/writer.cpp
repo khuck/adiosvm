@@ -1,4 +1,5 @@
 #include "writer.h"
+#include "perfstubs_api/Timer.h"
 
 void define_bpvtk_attribute(const Settings &s, adios2::IO &io)
 {
@@ -112,6 +113,7 @@ void Writer::write(int step, const GrayScott &sim)
         writer.Put<double>(var_v, v.data());
         writer.EndStep();
     }
+    PERFSTUBS_DUMP_DATA()
 }
 
 void Writer::close() { writer.Close(); }
