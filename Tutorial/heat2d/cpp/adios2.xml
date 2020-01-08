@@ -33,8 +33,9 @@
         ==========================================-->
 
     <io name="SimulationOutput">
-        <engine type="BP4">
+        <engine type="SST">
             <parameter key="OpenTimeoutSecs" value="10.0"/>
+            <!-- <parameter key="DataTransport" value="WAN"/> -->
         </engine>
     </io>
 

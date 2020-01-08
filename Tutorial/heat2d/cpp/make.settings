@@ -13,7 +13,7 @@
 #
 # ADIOS v2 installation
 #
-ADIOS2_DIR=/opt/adios2
+ADIOS2_DIR=/home/users/khuck/src/ADIOS2/install_mpi
 
 #
 # C++ settings
