@@ -1,8 +1,8 @@
 # Set variables here
 FC=mpif90
 CXX=mpic++
-FFTW_DIR?=/usr/local/packages/fftw/3.2.2
-ADIOS2_DIR?=/home/users/khuck/src/ADIOS2/install_mpi
+FFTW_DIR=/usr/local/packages/fftw/3.3.8_openmpi4.0.1_gcc7.3
+ADIOS2_DIR=/home/users/khuck/src/ADIOS2/install_mpi
 
 # Use this line to enable the perfstubs API
 PERFSTUBS_FLAGS=`pkg-config --cflags perfstubs` -DPERFSTUBS_USE_TIMERS
@@ -21,7 +21,7 @@ CXXFLAGS=-O3 -std=c++11
 CFLAGS=-O3 $(PERFSTUBS_FFLAGS)
 
 INCLUDES = -I${FFTW_DIR}/include -I${decompdir}/include ${ADIOS2_FFLAGS}
-FFTW_LIB = -L${FFTW_DIR}/lib -lfftw3
+FFTW_LIB = -L${FFTW_DIR}/lib -lfftw3 -Wl,-rpath,${FFTW_DIR}/lib
 DECOMPLIB = -L${decompdir}/lib -l2decomp_fft
 LIBS = ${DECOMPLIB} ${ADIOS2_FLIB} ${FFTW_LIB}
 

@@ -13,6 +13,7 @@ analysis: var_checks
 
 clean:
 	cd simulation; ${MAKE} clean
+	cd simulation/2decomp_fft; ${MAKE} clean
 	cd analysis; ${MAKE} clean
 
 cleanall:

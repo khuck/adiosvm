@@ -269,7 +269,7 @@ PROGRAM main
             END IF
             CALL savedata(Nx,Ny,Nz,plotnum,fname,savefield,uhigh,vhigh,decomp,n)
             ! If time greater than plotting time
-            PERFSTUBS_DUMP_DATA()
+            ! PERFSTUBS_DUMP_DATA()
         END IF
     END DO  !timestepping
 

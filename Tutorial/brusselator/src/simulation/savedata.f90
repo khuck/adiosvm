@@ -246,6 +246,7 @@ MODULE BRUSSELATOR_IO
 
         call adios2_put (ad_engine, var_v_i, field, adios2_mode_deferred, ierr)
         call adios2_end_step (ad_engine, ierr)
+        PERFSTUBS_DUMP_DATA()
 #endif
         PERFSTUBS_TIMER_STOP('savedata')
     END SUBROUTINE savedata
@@ -261,7 +262,7 @@ MODULE BRUSSELATOR_IO
 #ifdef ADIOS2
         ierr = 0
         call adios2_close    (ad_engine, ierr)
-        call adios2_finalize (adios2_handle, ierr)
+        !call adios2_finalize (adios2_handle, ierr)
 #endif
 
     END SUBROUTINE IO_FINALIZE
