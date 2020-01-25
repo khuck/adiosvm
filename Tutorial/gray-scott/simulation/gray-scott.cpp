@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "gray-scott.h"
-#include "perfstubs_api/Timer.h"
+#include "perfstubs_api/timer.h"
 
 GrayScott::GrayScott(const Settings &settings, MPI_Comm comm)
     : settings(settings), comm(comm), rand_dev(), mt_gen(rand_dev()),
@@ -101,7 +101,6 @@ double GrayScott::calcV(double tu, double tv) const
 double GrayScott::laplacian(int x, int y, int z,
                             const std::vector<double> &s) const
 {
-    PERFSTUBS_SCOPED_TIMER_FUNC()
     double ts = 0.0;
     ts += s[l2i(x - 1, y, z)];
     ts += s[l2i(x + 1, y, z)];

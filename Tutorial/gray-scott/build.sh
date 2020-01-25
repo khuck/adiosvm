@@ -1,6 +1,5 @@
 #!/bin/bash
 
-module load cuda/9.2 cmake/3.15.4 gcc/7.3 openmpi/4.0.1-gcc7.3 
 module list
 
 rm -rf build

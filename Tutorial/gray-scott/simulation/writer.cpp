@@ -1,5 +1,5 @@
 #include "writer.h"
-#include "perfstubs_api/Timer.h"
+#include "perfstubs_api/timer.h"
 
 void define_bpvtk_attribute(const Settings &s, adios2::IO &io)
 {
