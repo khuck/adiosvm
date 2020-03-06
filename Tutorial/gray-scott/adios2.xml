@@ -68,16 +68,16 @@
            Configuration for Performance Monitoring with TAU
         ================================================-->
 
+    <!--
     <io name="TAUProfileOutput">
         <engine type="BP">
-            <!-- SST engine parameters -->
             <parameter key="RendezvousReaderCount" value="1"/>
             <parameter key="QueueLimit" value="5"/>
             <parameter key="QueueFullPolicy" value="Block"/>
-            <!-- BP4/SST engine parameters -->
             <parameter key="OpenTimeoutSecs" value="10.0"/>
         </engine>
     </io>
+    -->
 
     <!-- example engines
 
@@ -114,7 +114,7 @@
         </engine>
 
         === BP4 ===
-        BP4 is a new file format. 
+        BP4 is a new file format.
         'SubStreams' parameter controls how many files
             are created under the output folder. By default, each process
             writes its own file (N-to-N pattern), which is fast but is
@@ -123,7 +123,7 @@
             filesystem (e.g. twice the number of OST servers on a Lustre file system).
         'OpenTimeoutSecs' paramter specifies how long to wait on a reading Open
             for the file to appear. Useful for streaming when the reader starts up
-            faster than the writer produce any output. 
+            faster than the writer produce any output.
         <engine type="BPFile">
             <parameter key="SubStreams" value="4"/>
             <parameter key="OpenTimeoutSecs" value="10.0"/>
@@ -131,7 +131,7 @@
 
         === BPFile ===
         BPFile is a token name for the BP3 old file format.
-        It will refer to BP4 in the future. 
+        It will refer to BP4 in the future.
         'SubStreams' parameter is the same as for BP4.
         <engine type="BPFile">
             <parameter key="SubStreams" value="4"/>

@@ -5,10 +5,12 @@
 
 #include <adios2.h>
 #include <mpi.h>
+#include <dlfcn.h>
 
 #include "../common/timer.hpp"
 #include "gray-scott.h"
 #include "writer.h"
+#include "perfstubs_api/timer.h"
 
 void print_io_settings(const adios2::IO &io)
 {
@@ -40,10 +42,18 @@ void print_simulator_settings(const GrayScott &s)
               << s.size_z << std::endl;
 }
 
+void dopreloads(void) {
+    dlopen("/home/users/khuck/src/tau2/ibm64linux/lib/shared-papi-mpi-pthread-pdt-adios2-pgi/libTAU-pthread.so", RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
+    dlopen("/home/users/khuck/src/tau2/ibm64linux/lib/shared-papi-mpi-pthread-pdt-adios2-pgi/libTAU.so", RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
+    dlopen("/home/users/khuck/src/tau2/ibm64linux/lib/shared-papi-mpi-pthread-pdt-adios2-pgi/libTAU-preload.so", RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
+}
+
 int main(int argc, char **argv)
 {
+    //dopreloads();
     MPI_Init(&argc, &argv);
     int rank, procs, wrank;
+    PERFSTUBS_INITIALIZE();
 
     MPI_Comm_rank(MPI_COMM_WORLD, &wrank);
 
@@ -67,6 +77,7 @@ int main(int argc, char **argv)
     GrayScott sim(settings, comm);
     sim.init();
 
+    {
     adios2::ADIOS adios(settings.adios_config, comm, adios2::DebugON);
     adios2::IO io_main = adios.DeclareIO("SimulationOutput");
     adios2::IO io_ckpt = adios.DeclareIO("SimulationCheckpoint");
@@ -147,6 +158,8 @@ int main(int argc, char **argv)
 
     log.close();
 #endif
+    }
 
+    PERFSTUBS_FINALIZE();
     MPI_Finalize();
 }

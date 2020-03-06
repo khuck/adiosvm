@@ -1,5 +1,6 @@
 #!/bin/bash
 
+module load cmake/3.15.4
 module list
 
 rm -rf build
@@ -8,8 +9,8 @@ cd build
 
 cmake .. \
 -DCMAKE_BUILD_TYPE=Release \
--DCMAKE_C_COMPILER=`which gcc` \
--DCMAKE_CXX_COMPILER=`which g++` \
--DCMAKE_PREFIX_PATH=$HOME/src/ADIOS2/install_mpi/lib64/cmake;../perfstubs/install/lib/cmake
+-DCMAKE_C_COMPILER=${CC} \
+-DCMAKE_CXX_COMPILER=${CXX} \
+-DCMAKE_PREFIX_PATH=${ADIOS_DIR}/lib64/cmake;../../perfstubs/install/lib/cmake
 
 make  VERBOSE=1
