@@ -43,17 +43,17 @@ void print_simulator_settings(const GrayScott &s)
 }
 
 void dopreloads(void) {
-    dlopen("/home/users/khuck/src/tau2/ibm64linux/lib/shared-papi-mpi-pthread-pdt-adios2-pgi/libTAU-pthread.so", RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
-    dlopen("/home/users/khuck/src/tau2/ibm64linux/lib/shared-papi-mpi-pthread-pdt-adios2-pgi/libTAU.so", RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
-    dlopen("/home/users/khuck/src/tau2/ibm64linux/lib/shared-papi-mpi-pthread-pdt-adios2-pgi/libTAU-preload.so", RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
+    dlopen("/gpfs/alpine/scratch/khuck/csc143/tau2/summit-adios2-2020.03.04/ibm64linux/lib/shared-pgi-19.4-papi-mpi-pthread-pdt-adios2-pgi/libTAU-pthread.so", RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
+    dlopen("/gpfs/alpine/scratch/khuck/csc143/tau2/summit-adios2-2020.03.04/ibm64linux/lib/libTAUsh-pgi-19.4-papi-mpi-pthread-pdt-adios2-pgi.so", RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
+    dlopen("/gpfs/alpine/scratch/khuck/csc143/tau2/summit-adios2-2020.03.04/ibm64linux/lib/shared-pgi-19.4-papi-mpi-pthread-pdt-adios2-pgi/libTAU-preload.so", RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
 }
 
 int main(int argc, char **argv)
 {
     //dopreloads();
     MPI_Init(&argc, &argv);
-    int rank, procs, wrank;
     PERFSTUBS_INITIALIZE();
+    int rank, procs, wrank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &wrank);
 
@@ -160,6 +160,6 @@ int main(int argc, char **argv)
 #endif
     }
 
-    PERFSTUBS_FINALIZE();
     MPI_Finalize();
+    PERFSTUBS_FINALIZE();
 }

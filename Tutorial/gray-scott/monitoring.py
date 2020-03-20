@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from mpi4py import MPI
+#from mpi4py import MPI
 import numpy as np
 import adios2
 #import os
@@ -12,6 +12,7 @@ import matplotlib.gridspec as gridspec
 import operator
 from operator import add
 from matplotlib.font_manager import FontProperties
+from collections import OrderedDict
 
 # Global variables
 cpu_component_count = 9
@@ -102,8 +103,9 @@ def get_utilization(is_cpu, fr_step, vars_info, components, previous_mean, previ
         #print(c,mean_values[0],count_values[0],total_value, current_period[c])
         period_values[c] = np.append(period_values[c], current_period[c])
 
-def get_top5(fr_step, vars_info):
-    num_ranks = int(vars_info["num_threads"]["Shape"].split(',')[0])
+def get_topX(fr_step, vars_info):
+    #num_ranks = int(vars_info["num_threads"]["Shape"].split(',')[0])
+    num_ranks = fr_step.read("num_ranks")[0]
     num_threads = fr_step.read("num_threads")[0]
     timer_means = {}
     timer_values = {}
@@ -125,15 +127,17 @@ def get_top5(fr_step, vars_info):
                 index = index + num_threads
             timer_means[shortname] = np.sum(timer_values[shortname]) / num_ranks   
     limit = 0
-    others = len(timer_means) - 5
-    timer_values["other"] = [0] * num_ranks
+    others = len(timer_means) - 8
+    sorted_values = OrderedDict()
+    #sorted_values["other"] = [0] * num_ranks
+    sorted_values["other"] = [0] * num_ranks
     for key, value in sorted(timer_means.items(), key=lambda kv: kv[1]):
         limit = limit + 1
         if limit <= others:
-            timer_values["other"] = list( map(add, timer_values["other"], timer_values[key]) )
-            del timer_values[key]
-    #print(timer_values)
-    return timer_values, num_ranks
+            sorted_values["other"] = list( map(add, sorted_values["other"], timer_values[key]) )
+        else:
+            sorted_values[key] = timer_values[key]
+    return sorted_values, num_ranks
 
 def plot_cpu_utilization(ax, x, fontsize):
     global cpu_components
@@ -196,23 +200,27 @@ def plot_io_utilization(ax, x, fontsize):
     fontP.set_size('small')
     ax.legend(bbox_to_anchor=(1.10,0.5), loc="center left", borderaxespad=0, prop=fontP)
 
-def plot_timers(ax, x, fontsize, top5):
-    for key in top5:
-        ax.bar(x,top5[key],label=((key[:30] + '..') if len(key) > 30 else key))
+def plot_timers(ax, x, fontsize, topX):
+    bottom = [0.0] * len(x)
+    for key in topX:
+        ax.bar(x,topX[key],label=((key[:30] + '..') if len(key) > 30 else key), bottom=bottom)
+        bottom = list( map(add, bottom, topX[key]) )
     ax.legend(loc='lower left')
 
     fontdict={}
     fontdict['fontsize']=fontsize/2
-    ax.set_title("Top 5 timers per rank", fontsize=fontsize)
+    ax.set_title("Top timers per rank", fontsize=fontsize)
     ax.set_xlabel("rank", fontdict=fontdict)
     ax.set_ylabel("Time (us)", fontdict=fontdict)
     ax.yaxis.tick_right()
     fontP = FontProperties()
     fontP.set_size('small')
-    ax.legend(bbox_to_anchor=(1.10,0.5), loc="center left", borderaxespad=0, prop=fontP)
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles[::-1], labels[::-1], bbox_to_anchor=(1.10,0.5), loc="center left", borderaxespad=0, prop=fontP)
 
-def plot_utilization(args, x, fontsize, step, top5, num_ranks):
-    print("plotting", end='...', flush=True)
+
+def plot_utilization(args, x, fontsize, step, topX, num_ranks):
+    print(" Plotting", end='...', flush=True)
     fig = plt.figure(4, figsize=(8,8), constrained_layout=True)
     gs = gridspec.GridSpec(4, 1, figure=fig)
     cpu = fig.add_subplot(gs[0, 0])
@@ -220,10 +228,14 @@ def plot_utilization(args, x, fontsize, step, top5, num_ranks):
     io = fig.add_subplot(gs[2, 0])
     timers = fig.add_subplot(gs[3, 0])
 
+    print("cpu", end='...', flush=True)
     plot_cpu_utilization(cpu, x, fontsize)
+    print("mem", end='...', flush=True)
     plot_mem_utilization(mem, x, fontsize)
+    print("io", end='...', flush=True)
     plot_io_utilization(io, x, fontsize)
-    plot_timers(timers, np.arange(num_ranks), fontsize, top5)
+    print("timers", end='...', flush=True)
+    plot_timers(timers, np.arange(num_ranks), fontsize, topX)
     plt.tick_params(axis='both', which='both', labelsize = fontsize/2)
 
     print("writing", end='...', flush=True)
@@ -232,7 +244,7 @@ def plot_utilization(args, x, fontsize, step, top5, num_ranks):
         plt.show()
         plt.pause(args.displaysec)
     else:
-        imgfile = args.outfile+"_"+"{0:0>5}".format(step)+".png"
+        imgfile = args.outfile+"_"+"{0:0>5}".format(step)+".svg"
         fig.savefig(imgfile)
 
     plt.clf()
@@ -255,13 +267,17 @@ def process_file(args):
         # inspect variables in current step
         vars_info = fr_step.available_variables()
         #dumperiod_valuesars(vars_info)
+        print("Reading cpu", end='...', flush=True)
         get_utilization(True, fr_step, vars_info, cpu_components, previous_mean, previous_count, current_period, period_values)
+        print("mem", end='...', flush=True)
         get_utilization(False, fr_step, vars_info, mem_components, previous_mean, previous_count, current_period, period_values)
+        print("io", end='...', flush=True)
         get_utilization(False, fr_step, vars_info, io_components, previous_mean, previous_count, current_period, period_values)
-        top5, num_ranks = get_top5(fr_step, vars_info)
+        print("timers", end='...', flush=True)
+        topX, num_ranks = get_topX(fr_step, vars_info)
 
         x=range(0,cur_step+1)
-        plot_utilization(args, x, fontsize, cur_step, top5, num_ranks)
+        plot_utilization(args, x, fontsize, cur_step, topX, num_ranks)
 
 if __name__ == '__main__':
     args = SetupArgs()
