@@ -39,7 +39,7 @@ def SetupArgs():
     args.nx = 1
     args.ny = 1
     args.nz = 1
-    
+
     return args
 
 def dumperiod_valuesars(vars_info):
@@ -92,7 +92,7 @@ def get_utilization(is_cpu, fr_step, vars_info, components, previous_mean, previ
         # Convert to MB if necessary
         if not is_cpu and "KB" in c.upper():
             mean_values[0] = mean_values[0] / 1000.0
-        # Compute the total values seen 
+        # Compute the total values seen
         total_value = mean_values[0]*count_values[0]
         # What's the value from the current frame?
         if previous_count[c] < count_values[0]:
@@ -123,7 +123,7 @@ def get_top5(fr_step, vars_info):
             while index < shape[0]:
                 timer_values[shortname].append(mean_values[index])
                 index = index + num_threads
-            timer_means[shortname] = np.sum(timer_values[shortname]) / num_ranks   
+            timer_means[shortname] = np.sum(timer_values[shortname]) / num_ranks
     limit = 0
     others = len(timer_means) - 5
     timer_values["other"] = [0] * num_ranks
@@ -236,14 +236,14 @@ def plot_utilization(args, x, fontsize, step, top5, num_ranks):
         fig.savefig(imgfile)
 
     plt.clf()
-    print("done.") 
+    print("done.")
 
 def process_file(args):
     fontsize=12
     filename = args.instream
     print ("Opening:", filename)
     if not args.nompi:
-        fr = adios2.open(filename, "r", MPI.COMM_SELF, "adios2.xml", "TAUProfileOutput")
+        fr = adios2.open(filename, "r", MPI.COMM_SELF, "adios.xml", "TAUProfileOutput")
     else:
         fr = adios2.open(filename, "r", "adios2.xml", "TAUProfileOutput")
     initialize_globals()
