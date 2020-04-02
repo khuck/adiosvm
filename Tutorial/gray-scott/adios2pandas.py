@@ -80,6 +80,7 @@ def build_per_host_dataframe(fr_step, step, num_hosts, variables, columns):
     df_trimmed[columns].plot(kind='bar', stacked=True)
     imgfile = "cpu_utilization"+"_"+"{0:0>5}".format(step)+".svg"
     plt.savefig(imgfile)
+    plt.close()
 
 # Build a dataframe that has per-rank data for this timestep of the output data
 
@@ -100,6 +101,7 @@ def build_per_rank_dataframe(fr_step, step, variables, columns):
     df[columns].plot(logy=True)
     imgfile = "mem_utilization"+"_"+"{0:0>5}".format(step)+".svg"
     plt.savefig(imgfile)
+    plt.close()
 
 # Process the ADIOS2 file
 
