@@ -13,6 +13,7 @@ import matplotlib.gridspec as gridspec
 import operator
 from operator import add
 from matplotlib.font_manager import FontProperties
+import json
 
 # CPU: Pretty names for graph
 cpu_components_for_graph = ['Guest','I/O Wait', 'IRQ', 'Idle', 'Nice', 'Steal', 'System', 'User', 'soft IRQ']
@@ -27,15 +28,9 @@ mem_components = ['Memory Footprint (VmRSS) (KB) / Mean','Peak Memory Usage Resi
 def SetupArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument("--instream", "-i", help="Name of the input stream", required=True)
-    parser.add_argument("--outfile", "-o", help="Name of the output file", default="screen")
+    parser.add_argument("--config", "-c", help="Name of the config JSON file", default="charts.json")
     parser.add_argument("--nompi", "-nompi", help="ADIOS was installed without MPI", action="store_true")
-    parser.add_argument("--displaysec", "-dsec", help="Float representing gap between plot window refresh", default=0.2)
     args = parser.parse_args()
-
-    args.displaysec = float(args.displaysec)
-    args.nx = 1
-    args.ny = 1
-    args.nz = 1
 
     return args
 
@@ -51,7 +46,7 @@ def get_num_hosts(attr_info):
 
 # Build a dataframe that has per-node data for this timestep of the output data
 
-def build_per_host_dataframe(fr_step, step, num_hosts, variables, columns):
+def build_per_host_dataframe(fr_step, step, num_hosts, variables, columns, filename):
     # Read the number of ranks - check for the new method first
     num_ranks = 1
     if len(fr_step.read('num_ranks')) == 0:
@@ -65,6 +60,7 @@ def build_per_host_dataframe(fr_step, step, num_hosts, variables, columns):
     # For each variable, get each MPI rank's data, some will be bogus (they didn't write it)
     for name in variables:
         rows.append(fr_step.read(name))
+    print("Processing dataframe...")
     # Now, transpose the matrix so that the rows are each rank, and the variables are columns
     df = pd.DataFrame(rows).transpose()
     # Add a name for each column
@@ -77,18 +73,22 @@ def build_per_host_dataframe(fr_step, step, num_hosts, variables, columns):
     # This will filter out the bogus data
     df_trimmed = df[df['mpi_rank']%ranks_per_node == 0]
     #print(df_trimmed)
+    print("Plotting...")
     df_trimmed[columns].plot(kind='bar', stacked=True)
-    imgfile = "cpu_utilization"+"_"+"{0:0>5}".format(step)+".svg"
+    imgfile = filename+"_"+"{0:0>5}".format(step)+".svg"
+    print("Writing...")
     plt.savefig(imgfile)
     plt.close()
+    print("done.")
 
 # Build a dataframe that has per-rank data for this timestep of the output data
 
-def build_per_rank_dataframe(fr_step, step, variables, columns):
+def build_per_rank_dataframe(fr_step, step, variables, columns, filename):
     rows = []
     # For each variable, get each MPI rank's data
     for name in variables:
         rows.append(fr_step.read(name))
+    print("Processing dataframe...")
     # Now, transpose the matrix so that the rows are each rank, and the variables are columns
     df = pd.DataFrame(rows).transpose()
     # Add a name for each column
@@ -98,14 +98,20 @@ def build_per_rank_dataframe(fr_step, step, variables, columns):
     # Add the step column, all with the same value
     df['step']=step
     #print(df)
+    print("Plotting...")
     df[columns].plot(logy=True)
-    imgfile = "mem_utilization"+"_"+"{0:0>5}".format(step)+".svg"
+    imgfile = filename+"_"+"{0:0>5}".format(step)+".svg"
+    print("Writing...")
     plt.savefig(imgfile)
     plt.close()
+    print("done.")
 
 # Process the ADIOS2 file
 
 def process_file(args):
+    config_data = open(args.config)
+    config = json.load(config_data)
+    print(config)
     filename = args.instream
     print ("Opening:", filename)
     if not args.nompi:
@@ -122,14 +128,16 @@ def process_file(args):
         # track current step
         cur_step = fr_step.current_step()
         print(filename, "Step = ", cur_step)
-        # Get the cpu utilization data
-        build_per_host_dataframe(fr_step, cur_step, num_hosts, cpu_components, cpu_components_for_graph)
-        # Get the memory utilization data
-        build_per_rank_dataframe(fr_step, cur_step, mem_components, mem_components_for_graph)
+        for f in config["figures"]:
+            print(f["name"])
+            if f["granularity"] == "node":
+                build_per_host_dataframe(fr_step, cur_step, num_hosts, f["components"], f["labels"], f["filename"])
+            else:
+                build_per_rank_dataframe(fr_step, cur_step, f["components"], f["labels"], f["filename"])
 
 
 if __name__ == '__main__':
     args = SetupArgs()
-    #print(args)
+    print(args)
     process_file(args)
 
