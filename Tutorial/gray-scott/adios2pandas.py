@@ -15,16 +15,6 @@ from operator import add
 from matplotlib.font_manager import FontProperties
 import json
 
-# CPU: Pretty names for graph
-cpu_components_for_graph = ['Guest','I/O Wait', 'IRQ', 'Idle', 'Nice', 'Steal', 'System', 'User', 'soft IRQ']
-# Actual ADIOS2 variable names
-cpu_components = ['cpu: Guest % / Mean','cpu: I/O Wait % / Mean', 'cpu: IRQ % / Mean', 'cpu: Idle % / Mean', 'cpu: Nice % / Mean', 'cpu: Steal % / Mean', 'cpu: System % / Mean', 'cpu: User % / Mean', 'cpu: soft IRQ % / Mean']
-
-# Memory: Pretty names for graph
-mem_components_for_graph = ['Memory Footprint (VmRSS) (KB)','Peak Memory Usage Resident Set Size (VmHWM) (KB)','program size (kB)','resident set size (kB)']
-# Actual ADIOS2 variable names
-mem_components = ['Memory Footprint (VmRSS) (KB) / Mean','Peak Memory Usage Resident Set Size (VmHWM) (KB) / Mean','program size (kB) / Mean','resident set size (kB) / Mean']
-
 def SetupArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument("--instream", "-i", help="Name of the input stream", required=True)
