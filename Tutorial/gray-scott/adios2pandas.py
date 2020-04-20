@@ -38,7 +38,14 @@ def get_num_hosts(attr_info):
 
 # Build a dataframe that has per-node data for this timestep of the output data
 
-def build_per_host_dataframe(fr_step, step, num_hosts, variables, columns, filename):
+def build_per_host_dataframe(fr_step, step, num_hosts, config):
+    title = config["name"]
+    variables = config["components"]
+    columns = config["labels"]
+    filename = config["filename"]
+    ncol = config["legend columns"]
+    xlabel = config["xlabel"]
+    ylabel = config["ylabel"]
     # Read the number of ranks - check for the new method first
     num_ranks = 1
     if len(fr_step.read('num_ranks')) == 0:
@@ -66,8 +73,10 @@ def build_per_host_dataframe(fr_step, step, num_hosts, variables, columns, filen
     df_trimmed = df[df['mpi_rank']%ranks_per_node == 0]
     #print(df_trimmed)
     print("Plotting...")
-    ax = df_trimmed[columns].plot(kind='bar', stacked=True)
-    plt.legend(loc='lower left', bbox_to_anchor=(1.0,0.5))
+    ax = df_trimmed[columns].plot(kind='bar', stacked=True, title=title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5,-0.12), ncol=3)
     imgfile = filename+"_"+"{0:0>5}".format(step)+".svg"
     print("Writing...")
     plt.savefig(imgfile, bbox_inches='tight')
@@ -76,7 +85,14 @@ def build_per_host_dataframe(fr_step, step, num_hosts, variables, columns, filen
 
 # Build a dataframe that has per-rank data for this timestep of the output data
 
-def build_per_rank_dataframe(fr_step, step, variables, columns, filename):
+def build_per_rank_dataframe(fr_step, step, config):
+    title = config["name"]
+    variables = config["components"]
+    columns = config["labels"]
+    filename = config["filename"]
+    ncol = config["legend columns"]
+    xlabel = config["xlabel"]
+    ylabel = config["ylabel"]
     rows = []
     # For each variable, get each MPI rank's data
     for name in variables:
@@ -96,8 +112,10 @@ def build_per_rank_dataframe(fr_step, step, variables, columns, filename):
     #if (filename == "io_usage"):
     #    print(df)
     print("Plotting...")
-    df[columns].plot(logy=True, style='.-')
-    plt.legend(loc='lower left', bbox_to_anchor=(1.0,0.5))
+    ax = df[columns].plot(logy=True, style='.-', title=title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5,-0.12), ncol=ncol)
     imgfile = filename+"_"+"{0:0>5}".format(step)+".svg"
     print("Writing...")
     plt.savefig(imgfile, bbox_inches='tight')
@@ -106,7 +124,12 @@ def build_per_rank_dataframe(fr_step, step, variables, columns, filename):
 
 # Build a dataframe for the top X timers
 
-def build_topX_timers_dataframe(fr_step, step, num_timers, filename):
+def build_topX_timers_dataframe(fr_step, step, config):
+    title = config["name"]
+    num_timers = int(config["granularity"])
+    filename = config["filename"]
+    xlabel = config["xlabel"]
+    ylabel = config["ylabel"]
     variables = fr_step.available_variables()
     num_threads = fr_step.read('num_threads')[0]
     timer_data = {}
@@ -135,9 +158,11 @@ def build_topX_timers_dataframe(fr_step, step, num_timers, filename):
     topX_series = sorted_series[:num_timers].axes[0].tolist()
     # Plot the DataFrame
     print("Plotting...")
-    ax = df[topX_series].plot(kind='bar', stacked=True, width=1.0)
+    ax = df[topX_series].plot(kind='bar', stacked=True, width=1.0, title=title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
     handles, labels = ax.get_legend_handles_labels()
-    plt.legend(reversed(handles), reversed(labels), loc='lower left', bbox_to_anchor=(1.0,0.5))
+    plt.legend(reversed(handles), reversed(labels), loc='upper center', bbox_to_anchor=(0.5,-0.12))
     imgfile = filename+"_"+"{0:0>5}".format(step)+".svg"
     print("Writing...")
     plt.savefig(imgfile, bbox_inches='tight')
@@ -170,11 +195,11 @@ def process_file(args):
         for f in config["figures"]:
             print(f["name"])
             if "Timer" in f["name"]:
-                build_topX_timers_dataframe(fr_step, cur_step, int(f["granularity"]), f["filename"])
+                build_topX_timers_dataframe(fr_step, cur_step, f)
             elif f["granularity"] == "node":
-                build_per_host_dataframe(fr_step, cur_step, num_hosts, f["components"], f["labels"], f["filename"])
+                build_per_host_dataframe(fr_step, cur_step, num_hosts, f)
             else:
-                build_per_rank_dataframe(fr_step, cur_step, f["components"], f["labels"], f["filename"])
+                build_per_rank_dataframe(fr_step, cur_step, f)
 
 
 if __name__ == '__main__':

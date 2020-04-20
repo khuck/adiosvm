@@ -2,8 +2,11 @@
     "figures" : [
         {
         "name" : "CPU Utilization",
+        "xlabel" : "Host",
+        "ylabel" : "Percent",
         "filename" : "cpu_utilization",
         "granularity" : "node",
+        "legend columns" : 3,
         "components" : [
             "cpu: Guest % / Mean",
             "cpu: I/O Wait % / Mean",
@@ -29,8 +32,11 @@
         },
         {
         "name" : "Memory Usage",
+        "xlabel" : "MPI Rank",
+        "ylabel" : "kBytes",
         "filename" : "memory_usage",
         "granularity" : "process",
+        "legend columns" : 1,
         "components" : [
             "Memory Footprint (VmRSS) (KB) / Mean",
             "Peak Memory Usage Resident Set Size (VmHWM) (KB) / Mean",
@@ -46,8 +52,11 @@
         },
         {
         "name" : "I/O Usage",
+        "xlabel" : "MPI Rank",
+        "ylabel" : "Bytes",
         "filename" : "io_usage",
         "granularity" : "process",
+        "legend columns" : 2,
         "components" : [
             "io:cancelled_write_bytes / Mean",
             "io:rchar / Mean",
@@ -69,6 +78,8 @@
         },
         {
         "name" : "Top 5 Timers",
+        "xlabel" : "MPI Rank",
+        "ylabel" : "usec",
         "filename" : "top_5_timers",
         "granularity" : "5"
         }
